@@ -1,0 +1,19 @@
+{
+  "name": "@bryopsida/fastify-starter-template",
+  "version": "0.1.0",
+  "description": "A starter template for a fastify server",
+  "main": "server.js",
+  "scripts": {
+    "lint": "prettier --check . && standard",
+    "lint:fix": "prettier --write . && standard --fix",
+    "test": "node --test",
+    "prepare": "husky"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "prettier": "^3.3.3",
+    "standard": "^17.1.2"
+  }
+}

@@ -1,0 +1,62 @@
+name: QA
+on:
+  workflow_call:
+    inputs:
+      node_versions:
+        default: '{"node-version": ["18.x","20.x", "22.x"]}'
+        type: string
+        required: false
+      cache-dependency-path:
+        type: string
+        default: "package-lock.json"
+        required: false
+      upload-name:
+        type: string
+        required: false
+        default: artifacts
+      upload-paths:
+        type: string
+        required: false
+        default: |
+          coverage
+      upload-version:
+        default: "20.x"
+        type: string
+        required: false
+      continue-on-prod-vulns:
+        default: true
+        type: boolean
+        description: "Whether to fail the job or continue when vulnerabilities are found in production dependencies"
+      runs-on:
+        type: "string"
+        required: false
+        default: '["ubuntu-latest"]'
+        description: string of a JSON array describing the run target.
+jobs:
+  ci:
+    name: CI
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON( inputs.node_versions ) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@6d193bf28034eafb982f37bd894289fe649468fc
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+      - run: npm ci --prefer-offline
+      - run: npm run build --if-present
+      - run: npm run lint --if-present
+      - run: npm audit --omit dev
+        continue-on-error: ${{ inputs.continue-on-prod-vulns }}
+      - run: npm run test --if-present
+      - run: npm run test:e2e --if-present
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.node-version == inputs.upload-version }}
+        with:
+          name: ${{ inputs.upload-name }}
+          path: ${{ inputs.upload-paths }}
