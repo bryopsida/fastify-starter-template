@@ -16,7 +16,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@fastify/env": "^5.0.1",
     "del": "^7.1.0",
     "gulp": "^5.0.0",
     "husky": "^9.1.6",
@@ -25,6 +24,7 @@
     "standard": "^17.1.2"
   },
   "dependencies": {
+    "@fastify/env": "^5.0.1",
     "@fastify/csrf-protection": "^7.0.0",
     "@fastify/etag": "^6.0.0",
     "@fastify/helmet": "^12.0.0",

@@ -10,7 +10,8 @@
     "ghcr.io/devcontainers-contrib/features/prettier:1": {},
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
       "packages": "build-essential"
-    }
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   "customizations": {
     "vscode": {
