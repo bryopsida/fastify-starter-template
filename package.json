@@ -15,6 +15,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@fastify/env": "^5.0.1",
     "husky": "^9.1.6",
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
@@ -31,6 +32,7 @@
     "argon2": "^0.41.1",
     "dotenv": "^16.4.5",
     "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.1",
     "sequelize": "^6.37.3",
     "sqlite3": "^5.1.7",
     "umzug": "^3.8.1"

@@ -6,17 +6,27 @@ import 'dotenv/config'
 import Fastify from 'fastify'
 import helmet from '@fastify/helmet'
 import etag from '@fastify/etag'
+import env from '@fastify/env'
 import secureSession from '@fastify/secure-session'
 import csrfProtection from '@fastify/csrf-protection'
 import underPressure from '@fastify/under-pressure'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 
+import envSchema from './schemas/env.js'
+import sequelize from './plugins/sequelize.js'
+import users from './plugins/users.js'
+import apiRoutes from './routes/api.js'
+
 export default function builder (opts) {
   const totalMemory = totalmem()
   const ninetyFivePercentMemory = totalMemory * 0.95
 
   const app = Fastify(opts)
+  app.register(env, {
+    dotenv: true,
+    schema: envSchema
+  })
   app.register(helmet)
   app.register(etag)
   app.register(secureSession, {
@@ -61,6 +71,12 @@ export default function builder (opts) {
     transformStaticCSP: (header) => header,
     transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
     transformSpecificationClone: true
+  })
+  app.register(sequelize)
+  app.register(users)
+
+  app.register(apiRoutes, {
+    prefix: '/api'
   })
 
   if (!process.env.FASTIFY_SESSION_SECRET) {
