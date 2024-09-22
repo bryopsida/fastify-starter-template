@@ -7,8 +7,8 @@ on:
     branches:
       - main
 jobs:
-  ci:
-    name: CI
+  qa:
+    name: QA
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -37,3 +37,121 @@ jobs:
         with:
           name: artifacts
           path: coverage
+  image:
+    needs:
+      - qa
+    name: Build
+    env:
+      REGISTRY: ghcr.io/bryopsida
+      IMAGE_NAME: fastify-starter-template
+      CODEQL_ENABLED: true
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
+    outputs:
+      sha_tag: ${{ steps.short-sha.outputs.sha_tag }}
+      build_tag: ${{ steps.short-sha.outputs.build_tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
+        with:
+          cosign-release: "v1.13.6"
+      # for multi arch container builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+        with:
+          platforms: all
+      - name: Setup Docker buildx
+        id: buildx
+        timeout-minutes: 4
+        uses: docker/setup-buildx-action@b467d6aa7afffae6d3d466d2a74bd266618f87d6
+      - name: Log into registry
+        timeout-minutes: 5
+        uses: docker/login-action@3b8fed7e4b60203b2aa0ecc6c6d6d91d12c06760
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Default Branch Name
+        id: default-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "name=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name) >> $GITHUB_OUTPUT"
+      - name: Extract Docker metadata
+        id: meta
+        timeout-minutes: 5
+        uses: docker/metadata-action@70b2cdc6480c1a8b86edf1777157f8f437de2166
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=schedule
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', steps.default-branch.outputs.name) }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
+      - name: Display structure before build
+        run: ls -R
+      - name: Build Docker image
+        id: build
+        timeout-minutes: 25
+        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
+        with:
+          context: .
+          load: true
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+      - name: Get Short SHA
+        id: short-sha
+        run: |
+          export SHORT_SHA=$(git rev-parse --short HEAD)
+          export SHORT_SHA_TAG_ONLY=sha-$SHORT_SHA
+          echo "sha_short=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "build_tag=$SHORT_SHA_TAG_ONLY" >> $GITHUB_OUTPUT
+          echo "sha_tag=${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}:sha-$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Scan image
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.short-sha.outputs.sha_tag }}
+          format: "sarif"
+          output: "scan-results.sarif"
+      - name: Upload Container Scan SARIF report
+        if: ${{ env.codeql_enabled == 'true' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "scan-results.sarif"
+      - name: Push image
+        if: ${{ github.event_name != 'pull_request' }}
+        id: push
+        timeout-minutes: 60
+        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          load: false
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
+      - name: Sign the published Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign --force --recursive ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}
