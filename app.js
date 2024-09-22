@@ -8,6 +8,8 @@ import helmet from '@fastify/helmet'
 import etag from '@fastify/etag'
 import env from '@fastify/env'
 import secureSession from '@fastify/secure-session'
+import jwt from '@fastify/jwt'
+import fastifyAuth from '@fastify/auth'
 import csrfProtection from '@fastify/csrf-protection'
 import underPressure from '@fastify/under-pressure'
 import swagger from '@fastify/swagger'
@@ -16,7 +18,10 @@ import swaggerUi from '@fastify/swagger-ui'
 import envSchema from './schemas/env.js'
 import sequelize from './plugins/sequelize.js'
 import users from './plugins/users.js'
+import authn from './plugins/authn.js'
 import apiRoutes from './routes/api.js'
+import jwtVerify from './plugins/verify-jwt.js'
+import sessionVerify from './plugins/verify-session.js'
 
 export default function builder (opts) {
   const totalMemory = totalmem()
@@ -31,6 +36,9 @@ export default function builder (opts) {
   app.register(etag)
   app.register(secureSession, {
     secret: process.env.FASTIFY_SESSION_SECRET ?? randomBytes(64)
+  })
+  app.register(jwt, {
+    secret: process.env.FASTIFY_JWT_SECRET ?? randomBytes(32)
   })
   app.register(csrfProtection, { sessionPlugin: '@fastify/secure-session' })
   app.register(underPressure, {
@@ -73,7 +81,11 @@ export default function builder (opts) {
     transformSpecificationClone: true
   })
   app.register(sequelize)
+  app.register(jwtVerify)
+  app.register(sessionVerify)
   app.register(users)
+  app.register(authn)
+  app.register(fastifyAuth)
 
   app.register(apiRoutes, {
     prefix: '/api'
@@ -81,6 +93,9 @@ export default function builder (opts) {
 
   if (!process.env.FASTIFY_SESSION_SECRET) {
     app.log.warn('No FASTIFY_SESSION_SECRET environment variable set, using random secret')
+  }
+  if (!process.env.FASTIFY_JWT_SECRET) {
+    app.log.warn('No FASTIFY_JWT_SECRET environment variable set, using random secret')
   }
   return app
 }
