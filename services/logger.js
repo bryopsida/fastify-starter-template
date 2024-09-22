@@ -22,6 +22,14 @@ const logger = pino({
   timestamp: pino.stdTimeFunctions.isoTime
 })
 
+const healthCheckLogger = pino({
+  level: 'error',
+  transport: {
+    target: 'pino/file',
+    options: { destination: './logs/healthcheck.log', mkdir: true }
+  },
+  timestamp: pino.stdTimeFunctions.isoTime
+})
 const auditLogger = pino({
   level: 'trace',
   transport: {
@@ -54,6 +62,10 @@ function buildChildLogger (loggerNameOrMeta, loggerInstance) {
 
 export function getLogger (loggerNameOrMeta) {
   return buildChildLogger(loggerNameOrMeta, logger)
+}
+
+export function getHealthCheckLogger (loggerNameOrMeta) {
+  return buildChildLogger(loggerNameOrMeta, healthCheckLogger)
 }
 
 export function getAuditLogger (loggerNameOrMeta) {

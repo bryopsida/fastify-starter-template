@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import http from 'http'
-import { getLogger } from './services/logger.js'
+import { getHealthCheckLogger } from './services/logger.js'
 
-const logger = getLogger('healthcheck')
+const logger = getHealthCheckLogger('container-runtime-healthcheck')
 
 const options = {
   host: '127.0.0.1',
