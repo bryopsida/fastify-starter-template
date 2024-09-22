@@ -36,7 +36,12 @@ export default function builder (opts) {
   app.register(helmet)
   app.register(etag)
   app.register(secureSession, {
-    secret: process.env.FASTIFY_SESSION_SECRET ?? randomBytes(64)
+    secret: process.env.FASTIFY_SESSION_SECRET ?? randomBytes(64),
+    cookieName: process.env.FASTIFY_SESSION_COOKIE_NAME ?? 'sessionId',
+    cookie: {
+      path: '/',
+      httpOnly: true
+    }
   })
   app.register(jwt, {
     secret: process.env.FASTIFY_JWT_SECRET ?? randomBytes(32)

@@ -3,7 +3,7 @@ import { errorResponseBody } from '../../schemas/commonResponses.js'
 
 const userJsonSchema = {
   type: 'object',
-  required: ['username', 'email', 'password'],
+  required: ['username', 'email'],
   properties: {
     id: { type: 'integer' },
     firstName: { type: 'string' },
