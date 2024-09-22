@@ -12,6 +12,7 @@ import jwt from '@fastify/jwt'
 import fastifyAuth from '@fastify/auth'
 import csrfProtection from '@fastify/csrf-protection'
 import underPressure from '@fastify/under-pressure'
+import sensible from '@fastify/sensible'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 
@@ -81,6 +82,7 @@ export default function builder (opts) {
     transformSpecificationClone: true
   })
   app.register(sequelize)
+  app.register(sensible)
   app.register(jwtVerify)
   app.register(sessionVerify)
   app.register(users)

@@ -17,12 +17,6 @@ export class AuthNService {
     if (!await this.#verifyPassword(password, user.password)) {
       throw new Error('Invalid password')
     }
-    return {
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.Role.role
-    }
+    return user
   }
 }

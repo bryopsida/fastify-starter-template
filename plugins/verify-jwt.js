@@ -1,11 +1,13 @@
 import fp from 'fastify-plugin'
 
-export default fp(async (fastify, opts) => {
-  fastify.decorate('verifyJWT', async function (request, reply) {
+export default fp((fastify, opts, done) => {
+  fastify.decorate('verifyJWT', async function (request, reply, done) {
     try {
       await request.jwtVerify()
+      done()
     } catch (err) {
-      reply.send(err)
+      done(err)
     }
   })
+  done()
 })
