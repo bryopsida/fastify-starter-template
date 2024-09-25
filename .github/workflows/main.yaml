@@ -18,7 +18,7 @@ jobs:
           - 22.x
     steps:
       - name: Checkout
-        uses: actions/checkout@6d193bf28034eafb982f37bd894289fe649468fc
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
