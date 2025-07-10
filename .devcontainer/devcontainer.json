@@ -1,6 +1,6 @@
 {
   "name": "Fastify Dev Container",
-  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:22-bookworm",
+  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:24-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
