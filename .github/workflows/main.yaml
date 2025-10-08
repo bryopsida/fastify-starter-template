@@ -132,7 +132,7 @@ jobs:
           output: "scan-results.sarif"
       - name: Upload Container Scan SARIF report
         if: ${{ env.codeql_enabled == 'true' }}
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: "scan-results.sarif"
       - name: Push image
