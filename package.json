@@ -40,7 +40,7 @@
     "fastify": "^5.0.0",
     "fastify-plugin": "^5.0.1",
     "sequelize": "^6.37.3",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.0",
     "umzug": "^3.8.1"
   }
 }
