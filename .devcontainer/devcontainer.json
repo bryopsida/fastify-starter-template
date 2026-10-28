@@ -3,7 +3,7 @@
   "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:26-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/node:2": {
-      "version": "24"
+      "version": "26"
     },
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
